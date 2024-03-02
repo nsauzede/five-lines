@@ -93,14 +93,15 @@ class Resting implements FallingState {
 }
 class FallStrategy {
     constructor(private falling: FallingState) {}
-    update(x: number, y: number) {
-      if (map[y + 1][x].isAir()) {
-        this.falling = new Falling();
+    private drop(x: number, y: number) {
+      if (this.falling.isFalling()) {
         map[y + 1][x] = map[y][x];
         map[y][x] = new Air();
-      } else if (this.falling.isFalling()) {
-        this.falling = new Resting();
       }
+    }
+    update(x: number, y: number) {
+      this.falling = map[y + 1][x].isAir() ? new Falling() : new Resting();
+      this.drop(x, y);
     }
     getFalling() { return this.falling; }
 }
