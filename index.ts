@@ -157,34 +157,38 @@ class Box implements Tile {
         this.fallStrategy.update(x, y);
     }
 }
+class KeyConfiguration {
+    constructor(private color: string, private _1: boolean, private removeStrategy: RemoveStrategy) { }
+    getColor() { return this.color; }
+    is1() { return this._1; }
+    getremoveStrategy() { return this.removeStrategy; }
+}
 class Key0 implements Tile {
-    constructor(private color: string, private removeStrategy: RemoveStrategy) { }
+    constructor(private keyConf: KeyConfiguration) { }
     isAir() { return false; }
     isLock1() { return false; }
     isLock2() { return false; }
     draw(g: CanvasRenderingContext2D, x: number, y: number) {
-        g.fillStyle = this.color;
+        g.fillStyle = this.keyConf.getColor();
       g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
     }
     moveHorizontal(dx: number) {
-        remove(this.removeStrategy);
+        remove(this.keyConf.getremoveStrategy());
         moveToTile(playerx + dx, playery);
     }
     moveVertical(dy: number) {
-        remove(this.removeStrategy);
+        remove(this.keyConf.getremoveStrategy());
         moveToTile(playerx, playery + dy);
     }
     update(x: number, y: number) {}
 }
 class Lock0 implements Tile {
-    constructor(
-        private color: string,
-        private lock1: boolean) {}
+    constructor(private keyConf: KeyConfiguration) { }
     isAir() { return false; }
-    isLock1() { return this.lock1; }
-    isLock2() { return !this.lock1; }
+    isLock1() { return this.keyConf.is1(); }
+    isLock2() { return !this.keyConf.is1(); }
     draw(g: CanvasRenderingContext2D, x: number, y: number) {
-        g.fillStyle = this.color;
+        g.fillStyle = this.keyConf.getColor();
       g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
     }
     moveHorizontal(dx: number) {}
@@ -219,36 +223,6 @@ class Down implements Input {
 function assertExhausted(x: any): never {
     throw new Error("Unexpected object: " + x);
 }
-
-function transformTile(tile: RawTile) {
-  switch (tile) {
-    case RawTile.AIR: return new Air();
-    case RawTile.PLAYER: return new Player();
-    case RawTile.UNBREAKABLE: return new Unbreakable();
-    case RawTile.STONE: return new Stone(new Resting());
-    case RawTile.BOX: return new Box(new Resting());
-    case RawTile.FALLING_BOX: return new Box(new Falling());
-    case RawTile.FLUX: return new Flux();
-    case RawTile.KEY1: return new Key0("#ffcc00", new RemoveLock1());
-    case RawTile.LOCK1: return new Lock0("#ffcc00", true);
-    case RawTile.KEY2: return new Key0("#00ccff", new RemoveLock2());
-    case RawTile.LOCK2: return new Lock0("#00ccff", false);
-    default: assertExhausted(tile);
-  }
-}
-
-function transformMap() {
-  map = new Array(rawMap.length);
-  for (let y = 0; y < rawMap.length; y++) {
-    map[y] = new Array(rawMap[y].length);
-      for (let x = 0; x < rawMap[y].length; x++) {
-        map[y][x] = transformTile(rawMap[y][x]);
-      }
-  }
-}
-
-let inputs: Input[] = [];
-
 interface RemoveStrategy {
   check(tile: Tile): boolean;
 }
@@ -268,6 +242,37 @@ function remove(shouldRemove: RemoveStrategy) {
     }
   }
 }
+
+const YELLOW_KEY = new KeyConfiguration("#ffcc00",true,new RemoveLock1());
+const BLUE_KEY = new KeyConfiguration("#00ccff",false,new RemoveLock2());
+function transformTile(tile: RawTile) {
+  switch (tile) {
+    case RawTile.AIR: return new Air();
+    case RawTile.PLAYER: return new Player();
+    case RawTile.UNBREAKABLE: return new Unbreakable();
+    case RawTile.STONE: return new Stone(new Resting());
+    case RawTile.BOX: return new Box(new Resting());
+    case RawTile.FALLING_BOX: return new Box(new Falling());
+    case RawTile.FLUX: return new Flux();
+    case RawTile.KEY1: return new Key0(YELLOW_KEY);
+    case RawTile.LOCK1: return new Lock0(YELLOW_KEY);
+    case RawTile.KEY2: return new Key0(BLUE_KEY);
+    case RawTile.LOCK2: return new Lock0(BLUE_KEY);
+    default: assertExhausted(tile);
+  }
+}
+
+function transformMap() {
+  map = new Array(rawMap.length);
+  for (let y = 0; y < rawMap.length; y++) {
+    map[y] = new Array(rawMap[y].length);
+      for (let x = 0; x < rawMap[y].length; x++) {
+        map[y][x] = transformTile(rawMap[y][x]);
+      }
+  }
+}
+
+let inputs: Input[] = [];
 
 function moveToTile(newx: number, newy: number) {
   map[playery][playerx] = new Air();
