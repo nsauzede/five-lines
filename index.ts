@@ -11,17 +11,17 @@ enum RawTile {
   STONE, FALLING_STONE,
   BOX, FALLING_BOX,
   KEY1, LOCK1,
-  KEY2, LOCK2
+  KEY2, LOCK2,
 }
 
 let playerx = 1;
 let playery = 1;
 let rawMap: RawTile[][] = [
   [2, 2, 2, 2, 2, 2, 2, 2],
-  [2, 3, 0, 1, 1, 2, 0, 2],
-  [2, 4, 2, 6, 1, 2, 0, 2],
-  [2, 8, 4, 1, 1, 2, 0, 2],
-  [2, 4, 1, 1, 1, 9, 0, 2],
+  [2, 3, 0, 1, 1, 4, 2, 2],
+  [2, 4, 2, 6, 1, 4, 2, 2],
+  [2, 8, 4, 1, 1,11, 2, 2],
+  [2, 4, 1, 1, 1, 9,10, 2],
   [2, 2, 2, 2, 2, 2, 2, 2],
 ];
 let map: Tile[][];
@@ -179,13 +179,12 @@ class Key0 implements Tile {
 class Lock0 implements Tile {
     constructor(
         private color: string,
-        private lock1: boolean,
-        private lock2: boolean) {}
+        private lock1: boolean) {}
     isAir() { return false; }
     isLock1() { return this.lock1; }
-    isLock2() { return this.lock2; }
+    isLock2() { return !this.lock1; }
     draw(g: CanvasRenderingContext2D, x: number, y: number) {
-        g.fillStyle = "#ffcc00";
+        g.fillStyle = this.color;
       g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
     }
     moveHorizontal(dx: number) {}
@@ -231,9 +230,9 @@ function transformTile(tile: RawTile) {
     case RawTile.FALLING_BOX: return new Box(new Falling());
     case RawTile.FLUX: return new Flux();
     case RawTile.KEY1: return new Key0("#ffcc00", new RemoveLock1());
-    case RawTile.LOCK1: return new Lock0("#ffcc00", true, false);
+    case RawTile.LOCK1: return new Lock0("#ffcc00", true);
     case RawTile.KEY2: return new Key0("#00ccff", new RemoveLock2());
-    case RawTile.LOCK2: return new Lock0("#00ccff", false, true);
+    case RawTile.LOCK2: return new Lock0("#00ccff", false);
     default: assertExhausted(tile);
   }
 }
