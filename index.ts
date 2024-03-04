@@ -34,6 +34,7 @@ interface Tile {
     moveHorizontal(dx: number): void;
     moveVertical(dy: number): void;
     update(x: number, y: number): void;
+    getBlockOnTopState(): FallingState;
 }
 class Air implements Tile {
     isAir() { return true; }
@@ -47,6 +48,7 @@ class Air implements Tile {
         moveToTile(playerx, playery + dy);
     }
     update(x: number, y: number) {}
+    getBlockOnTopState() { return new Falling(); }
 }
 class Flux implements Tile {
     isAir() { return false; }
@@ -63,6 +65,7 @@ class Flux implements Tile {
         moveToTile(playerx, playery + dy);
     }
     update(x: number, y: number) {}
+    getBlockOnTopState() { return new Resting(); }
 }
 class Unbreakable implements Tile {
     isAir() { return false; }
@@ -75,6 +78,7 @@ class Unbreakable implements Tile {
     moveHorizontal(dx: number) {}
     moveVertical(dy: number) {}
     update(x: number, y: number) {}
+    getBlockOnTopState() { return new Resting(); }
 }
 class Player implements Tile {
     isAir() { return false; }
@@ -84,14 +88,20 @@ class Player implements Tile {
     moveHorizontal(dx: number) {}
     moveVertical(dy: number) {}
     update(x: number, y: number) {}
+    getBlockOnTopState() { return new Resting(); }
 }
 interface FallingState {
     isFalling(): boolean;
     moveHorizontal(tile: Tile, dx: number): void;
+    drop(x: number, y: number): void;
 }
 class Falling implements FallingState {
     isFalling() { return true; }
     moveHorizontal(tile: Tile, dx: number) {}
+    drop(x: number, y: number) {
+        map[y + 1][x] = map[y][x];
+        map[y][x] = new Air();
+    }
 }
 class Resting implements FallingState {
     isFalling() { return false; }
@@ -102,20 +112,17 @@ class Resting implements FallingState {
         moveToTile(playerx + dx, playery);
       }
     }
+    drop(x: number, y: number) { }
 }
 class FallStrategy {
     constructor(private falling: FallingState) {}
-    private drop(x: number, y: number) {
-      if (this.falling.isFalling()) {
-        map[y + 1][x] = map[y][x];
-        map[y][x] = new Air();
-      }
-    }
     update(x: number, y: number) {
-      this.falling = map[y + 1][x].isAir() ? new Falling() : new Resting();
-      this.drop(x, y);
+      this.falling = map[y + 1][x].getBlockOnTopState();
+      this.falling.drop(x, y);
     }
-    getFalling() { return this.falling; }
+    moveHorizontal(tile: Tile, dx: number) {
+        this.falling.moveHorizontal(tile, dx);
+    }
 }
 class Stone implements Tile {
     private fallStrategy: FallStrategy;
@@ -130,12 +137,13 @@ class Stone implements Tile {
       g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
     }
     moveHorizontal(dx: number) {
-      this.fallStrategy.getFalling().moveHorizontal(this, dx);
+      this.fallStrategy.moveHorizontal(this, dx);
     }
     moveVertical(dy: number) {}
     update(x: number, y: number) {
         this.fallStrategy.update(x, y);
     }
+    getBlockOnTopState() { return new Resting(); }
 }
 class Box implements Tile {
     private fallStrategy: FallStrategy;
@@ -150,12 +158,13 @@ class Box implements Tile {
       g.fillRect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
     }
     moveHorizontal(dx: number) {
-      this.fallStrategy.getFalling().moveHorizontal(this, dx);
+      this.fallStrategy.moveHorizontal(this, dx);
     }
     moveVertical(dy: number) {}
     update(x: number, y: number) {
         this.fallStrategy.update(x, y);
     }
+    getBlockOnTopState() { return new Resting(); }
 }
 class KeyConfiguration {
     constructor(private color: string, private _1: boolean, private removeStrategy: RemoveStrategy) { }
@@ -181,6 +190,7 @@ class Key0 implements Tile {
         moveToTile(playerx, playery + dy);
     }
     update(x: number, y: number) {}
+    getBlockOnTopState() { return new Resting(); }
 }
 class Lock0 implements Tile {
     constructor(private keyConf: KeyConfiguration) { }
@@ -194,6 +204,7 @@ class Lock0 implements Tile {
     moveHorizontal(dx: number) {}
     moveVertical(dy: number) {}
     update(x: number, y: number) {}
+    getBlockOnTopState() { return new Resting(); }
 }
 
 interface Input {
