@@ -33,8 +33,6 @@ jobs:
         run: npm install -D typescript
       - name: tsc
         run: tsc
-      - name: check tsc
-        run: ls -la
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
