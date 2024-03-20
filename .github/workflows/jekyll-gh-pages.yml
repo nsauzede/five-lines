@@ -32,6 +32,8 @@ jobs:
         uses: actions/configure-pages@v4
       - name: tsc install
         run: npm install -D typescript
+      - name: tsc
+        uses: icrawl/action-tsc@v1
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
