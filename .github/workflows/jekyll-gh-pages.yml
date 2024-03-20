@@ -34,6 +34,8 @@ jobs:
         run: npm install -D typescript
       - name: tsc
         uses: icrawl/action-tsc@v1
+      - name: check tsc
+        run: ls -la
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
