@@ -33,7 +33,7 @@ jobs:
       - name: tsc install
         run: npm install -D typescript
       - name: tsc
-        uses: icrawl/action-tsc@v1
+        run: tsc
       - name: check tsc
         run: ls -la
       - name: Build with Jekyll
